@@ -4,16 +4,11 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
-#include <vector>
+
+#include "rendering/Geometry.h"
 
 constexpr int BUFFER_WIDTH = 960;
 constexpr int BUFFER_HEIGHT = 540;
-
-struct PixelBuffer {
-    int width;
-    int height;
-    std::vector<std::uint32_t> pixels;
-};
 
 void process_input(bool& running)
 {
@@ -41,74 +36,14 @@ void clear_pixel_buffer(PixelBuffer& buffer)
     std::fill(buffer.pixels.begin(), buffer.pixels.end(), background_color);
 }
 
-void put_pixel(PixelBuffer& buffer, int x, int y, std::uint32_t color)
-{
-    if (x < 0 || x >= buffer.width || y < 0 || y >= buffer.height) {
-        return;
-    }
 
-    const int index = y * buffer.width + x;
-    buffer.pixels[index] = color;
-}
-
-void draw_rectangle(
-    PixelBuffer& buffer,
-    int x,
-    int y,
-    int width,
-    int height,
-    std::uint32_t color
-)
-{
-    for (int py = y; py < y + height; ++py) {
-        for (int px = x; px < x + width; ++px) {
-            put_pixel(buffer, px, py, color);
-        }
-    }
-}
-
-void draw_line(
-    PixelBuffer& buffer,
-    int x0,
-    int y0,
-    int x1,
-    int y1,
-    std::uint32_t color
-)
-{
-    const int dx = std::abs(x1 - x0);
-    const int step_x = x0 < x1 ? 1 : -1;
-    const int dy = -std::abs(y1 - y0);
-    const int step_y = y0 < y1 ? 1 : -1;
-    int error = dx + dy;
-
-    while (true) {
-        put_pixel(buffer, x0, y0, color);
-
-        if (x0 == x1 && y0 == y1) {
-            break;
-        }
-
-        const int doubled_error = 2 * error;
-
-        if (doubled_error >= dy) {
-            error += dy;
-            x0 += step_x;
-        }
-
-        if (doubled_error <= dx) {
-            error += dx;
-            y0 += step_y;
-        }
-    }
-}
 
 void render_into_pixel_buffer(PixelBuffer& buffer)
 {
     constexpr std::uint32_t yellow = 0x00FFD42D;
     constexpr std::uint32_t cyan = 0x003DFFF3;
 
-    draw_rectangle(
+    geometry::draw_rectangle(
         buffer,
         BUFFER_WIDTH / 2 - 50,
         BUFFER_HEIGHT / 2 - 30,
@@ -123,9 +58,9 @@ void render_into_pixel_buffer(PixelBuffer& buffer)
     const int right_x = top_x + 140;
     const int bottom_y = 350;
 
-    draw_line(buffer, top_x, top_y, left_x, bottom_y, cyan);
-    draw_line(buffer, left_x, bottom_y, right_x, bottom_y, cyan);
-    draw_line(buffer, right_x, bottom_y, top_x, top_y, cyan);
+    geometry::draw_line(buffer, top_x, top_y, left_x, bottom_y, cyan);
+    geometry::draw_line(buffer, left_x, bottom_y, right_x, bottom_y, cyan);
+    geometry::draw_line(buffer, right_x, bottom_y, top_x, top_y, cyan);
 }
 
 bool display_pixel_buffer(
